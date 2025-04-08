@@ -1,116 +1,139 @@
 feedback_types:
 
-  - name: "autonomy"
-    description: "Encourages learners to take control of their learning by exploring topics independently or setting their own goals."
-    message: "You're making steady progress in {item}. Consider exploring it further on your own to deepen your understanding."
+  - name: "metacognition"
+    description: "Inspires learners to reflect on their own thought processes and learning strategies."
+    message: "Pense em como você chegou à resposta em {item}. Há alguma estratégia que funcionou bem e que você pode repetir?"
 
-  - name: "competence"
-    description: "Affirms the learner's ability to master the material, highlighting progress and strengths."
-    message: "You're showing great competence in {item}! Keep up the excellent work."
+  - name: "persistence"
+    description: "Encourages resilience and effort after incorrect answers or difficulties."
+    message: "Você pode não ter acertado em {item} ainda, mas está no caminho certo. Continue tentando—cada erro é uma chance de aprender!"
 
-  - name: "relatedness"
-    description: "Makes the learner feel connected and supported, normalizing struggles and suggesting collaboration."
-    message: "Many students find {item} challenging. You're not alone—let's tackle this together."
+  - name: "curiosity"
+    description: "Sparks curiosity and encourages exploration beyond the immediate topic."
+    message: "Interessado em {item}? Que tal explorar como isso aparece em diferentes estilos musicais ou culturas?"
 
-  - name: "urgent"
-    description: "Indicates a need for immediate attention to foundational concepts due to struggles with easy questions."
-    message: "Urgent: You struggled with easy questions in {item}. Let's review the basics to build a stronger foundation."
+  - name: "goal_setting"
+    description: "Supports learners in setting clear, achievable learning goals."
+    message: "Seu progresso em {item} é ótimo! Que tal definir uma meta para dominar esse tópico até o fim da semana?"
 
-  - name: "review"
-    description: "Suggests revisiting the topic to strengthen understanding, especially for more challenging concepts."
-    message: "Consider reviewing {item}, especially the harder concepts, to improve your mastery."
+  - name: "engagement"
+    description: "Boosts learner engagement by connecting the content to enjoyable or meaningful activities."
+    message: "Você está se dedicando bem a {item}! Experimente tocar ou cantar algo relacionado, pode tornar o aprendizado mais divertido."
+
+  - name: "self_reflection"
+    description: "Promotes critical thinking by encouraging students to reflect on their performance."
+    message: "Reflita sobre sua resposta em {item}. O que você aprendeu com esse exercício que pode te ajudar na próxima vez?"
+
+  - name: "challenge"
+    description: "Offers a more difficult task to push the learner's ability slightly beyond their current level."
+    message: "Você dominou {item}. Que tal tentar uma versão mais difícil ou aplicar esse conceito em uma nova situação?"
+
+  - name: "collaboration"
+    description: "Recommends working with peers or others to strengthen understanding."
+    message: "Está com dúvidas em {item}? Compartilhe com um colega ou discuta com seu professor—música se aprende bem em grupo!"
+
+  - name: "progress"
+    description: "Recognizes the learner's cumulative improvement over time."
+    message: "Olha só quanto você já avançou em {item} desde que começou! Isso é um ótimo sinal de crescimento."
 
 
 feedback_rules:
 
-  - name: "Relatedness for low topic performance"
+  - name: "Persistence after repeated failures"
     condition:
-      type: "less_than"
-      left: "performance.topics[topic].percent_correct"
-      right: 50.0
+      type: "greater_than_or_equal"
+      left: "performance.topics[topic].consecutive_errors"
+      right: 3
     action:
-      feedback_relatedness[topic]: 1
-    description: "Flags relatedness feedback if topic performance is below 50%"
+      feedback_persistence[topic]: 1
+    description: "Triggers persistence feedback when student makes 3+ consecutive mistakes in a topic"
 
-  - name: "Competence for high topic performance"
-    condition:
-      type: "greater_than"
-      left: "performance.topics[topic].percent_correct"
-      right: 80.0
-    action:
-      feedback_competence[topic]: 1
-    description: "Flags competence feedback if topic performance exceeds 80%"
-
-  - name: "Autonomy for moderate topic performance"
-    condition:
-      type: "and"
-      conditions:
-        - type: "greater_than_or_equal"
-          left: "performance.topics[topic].percent_correct"
-          right: 50.0
-        - type: "less_than_or_equal"
-          left: "performance.topics[topic].percent_correct"
-          right: 80.0
-    action:
-      feedback_autonomy[topic]: 1
-    description: "Flags autonomy feedback if topic performance is between 50% and 80%"
-
-  - name: "Relatedness for low area performance"
-    condition:
-      type: "less_than"
-      left: "performance.areas[area].percent_correct"
-      right: 50.0
-    action:
-      feedback_relatedness[area]: 1
-    description: "Flags relatedness feedback if area performance is below 50%"
-
-  - name: "Competence for high area performance"
-    condition:
-      type: "greater_than"
-      left: "performance.areas[area].percent_correct"
-      right: 80.0
-    action:
-      feedback_competence[area]: 1
-    description: "Flags competence feedback if area performance exceeds 80%"
-
-  - name: "Autonomy for moderate area performance"
-    condition:
-      type: "and"
-      conditions:
-        - type: "greater_than_or_equal"
-          left: "performance.areas[area].percent_correct"
-          right: 50.0
-        - type: "less_than_or_equal"
-          left: "performance.areas[area].percent_correct"
-          right: 80.0
-    action:
-      feedback_autonomy[area]: 1
-    description: "Flags autonomy feedback if area performance is between 50% and 80%"
-
-  - name: "Urgent topic focus due to easy question failure"
+  - name: "Metacognition after incorrect but improving answers"
     condition:
       type: "and"
       conditions:
         - type: "greater_than"
-          left: "performance.topics[topic].difficulty_breakdown.easy"
-          right: 0
+          left: "performance.topics[topic].recent_improvement"
+          right: 0.1
         - type: "less_than"
           left: "performance.topics[topic].percent_correct"
-          right: 50.0
+          right: 60.0
     action:
-      feedback_urgent[topic]: 1
-    description: "Flags urgent focus if easy questions exist and topic performance is below 50%"
+      feedback_metacognition[topic]: 1
+    description: "Encourages metacognitive reflection when improvement is detected but performance remains low"
 
-  - name: "Review topic due to hard question weakness"
+  - name: "Curiosity for above average topic performance"
+    condition:
+      type: "greater_than"
+      left: "performance.topics[topic].percent_correct"
+      right: 85.0
+    action:
+      feedback_curiosity[topic]: 1
+    description: "Sparks curiosity in students who are excelling in a topic"
+
+  - name: "Goal setting for steady progress"
     condition:
       type: "and"
       conditions:
         - type: "greater_than"
-          left: "performance.topics[topic].difficulty_breakdown.hard"
-          right: 0
+          left: "performance.topics[topic].trend"
+          right: 0.1
         - type: "less_than"
           left: "performance.topics[topic].percent_correct"
-          right: 70.0
+          right: 85.0
     action:
-      feedback_review[topic]: 1
-    description: "Flags review if hard questions exist and topic performance is below 70%"
+      feedback_goal_setting[topic]: 1
+    description: "Suggests goal-setting when student shows steady improvement but hasn't yet mastered the topic"
+
+  - name: "Challenge for fully mastered topic"
+    condition:
+      type: "greater_than_or_equal"
+      left: "performance.topics[topic].percent_correct"
+      right: 95.0
+    action:
+      feedback_challenge[topic]: 1
+    description: "Encourages students to attempt more difficult material once a topic is mastered"
+
+  - name: "Self-reflection after mixed results"
+    condition:
+      type: "and"
+      conditions:
+        - type: "greater_than"
+          left: "performance.topics[topic].percent_correct"
+          right: 60.0
+        - type: "less_than"
+          left: "performance.topics[topic].percent_correct"
+          right: 80.0
+        - type: "greater_than"
+          left: "performance.topics[topic].standard_deviation"
+          right: 15.0
+    action:
+      feedback_self_reflection[topic]: 1
+    description: "Triggers reflection when performance is average but inconsistent"
+
+  - name: "Collaboration suggested for very low performance"
+    condition:
+      type: "less_than"
+      left: "performance.topics[topic].percent_correct"
+      right: 40.0
+    action:
+      feedback_collaboration[topic]: 1
+    description: "Encourages collaborative learning if a topic is especially difficult"
+
+  - name: "Engagement if student skipped similar items"
+    condition:
+      type: "greater_than"
+      left: "performance.topics[topic].skipped_items"
+      right: 2
+    action:
+      feedback_engagement[topic]: 1
+    description: "Boosts engagement when learner is skipping content within a topic"
+
+  - name: "Progress celebration for significant improvement"
+    condition:
+      type: "greater_than"
+      left: "performance.topics[topic].improvement_since_start"
+      right: 20.0
+    action:
+      feedback_progress[topic]: 1
+    description: "Celebrates growth when the learner significantly improves in a topic"
